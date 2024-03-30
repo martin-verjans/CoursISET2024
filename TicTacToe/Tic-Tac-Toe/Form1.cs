@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -12,384 +13,166 @@ namespace Tic_Tac_Toe
 {
     public partial class Form1 : Form
     {
-        private bool player1 = true;
-        private int[,] grid = new int[3, 3];
+        private const string TEXT_ERROR_CELL_TAKEN = "Vous ne pouvez pas cliquer ici, la case a déja été prise";
+        private bool player1Turn = true;
+        private int[,] gameGrid = new int[3, 3];
+
+        private readonly Button[] buttons;
+
         public Form1()
         {
+            InitializeComponent();
+             buttons = new Button[] { btn_0_0, btn_0_1, btn_0_2, btn_1_0, btn_1_1, btn_1_2, btn_2_0, btn_2_1, btn_2_2 };
+            btn_0_0.Tag = new Point(0, 0);
+            btn_0_1.Tag = new Point(0, 1);
+            btn_0_2.Tag = new Point(0, 2);
+            btn_1_0.Tag = new Point(1, 0);
+            btn_1_1.Tag = new Point(1, 1);
+            btn_1_2.Tag = new Point(1, 2);
+            btn_2_0.Tag = new Point(2, 0);
+            btn_2_1.Tag = new Point(2, 1);
+            btn_2_2.Tag = new Point(2, 2);
+
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    grid[i, j] = 0;
+                    gameGrid[i, j] = 0;
                 }
             }
 
-            InitializeComponent();
-
-            btn_0_0.Enabled = false;
-            btn_0_1.Enabled = false;
-            btn_0_2.Enabled = false;
-            btn_1_0.Enabled = false;
-            btn_1_1.Enabled = false;
-            btn_1_2.Enabled = false;
-            btn2_0.Enabled = false;
-            btn2_1.Enabled = false;
-            btn2_2.Enabled = false;
-
+            InitButtons();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void InitButtons()
         {
-            //New game
-            //Init les images
-            btn_0_0.ImageIndex = 0;
-            btn_0_1.ImageIndex = 0;
-            btn_0_2.ImageIndex = 0;
-            btn_1_0.ImageIndex = 0;
-            btn_1_1.ImageIndex = 0;
-            btn_1_2.ImageIndex = 0;
-            btn2_0.ImageIndex = 0;
-            btn2_1.ImageIndex = 0;
-            btn2_2.ImageIndex = 0;
-            //Activation des boutons
-            btn_0_0.Enabled = true;
-            btn_0_1.Enabled = true;
-            btn_0_2.Enabled = true;
-            btn_1_0.Enabled = true;
-            btn_1_1.Enabled = true;
-            btn_1_2.Enabled = true;
-            btn2_0.Enabled = true;
-            btn2_1.Enabled = true;
-            btn2_2.Enabled = true;
-            player1 = true;
-            label1.Text = "Joueur 1, cliquez sur une case";
+            foreach(Button b in buttons)
+            {
+                b.Enabled = false; 
+            }
+        }
+
+        private void btnNewGame_Click(object sender, EventArgs e)
+        {
+            PrepareNewGame();
+        }
+
+        private void PrepareNewGame()
+        {
+            player1Turn = true;
+            lblStatusText.Text = "Joueur 1, cliquez sur une case";
+
             //init de la grille
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    grid[i, j] = 0;
+                    gameGrid[i, j] = 0;
+                    
                 }
+            }
+
+            foreach(Button cellButton in buttons)
+            {
+                InitButton(cellButton);
             }
         }
 
-        private void btn_0_0_Click(object sender, EventArgs e)
+        private void InitButton(Button toInit)
         {
+            toInit.ImageIndex = 0;
+            toInit.Enabled = true;
+        }
 
-            if (grid[0, 0] != 0)
+        private void ButtonClick(object sender, EventArgs e)
+        {
+            Button clicked = (Button)sender;
+            Point coordinatesButton = (Point)clicked.Tag;
+            PlaceToken(clicked, coordinatesButton);
+        }
+
+        private void PlaceToken(Button clickedButton, Point cell)
+        {
+            if (!CellIsFree(cell))
             {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
+                DisplayErrorCellTaken();
+                return;
             }
-            else
-            {
-                if (player1)
-                {
-                    grid[0, 0] = 1;
-                    btn_0_0.ImageIndex = 1;
-                    btn_0_0.Enabled = false;
-                    label1.Text = "Joueur 2, cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[0, 0] = 2;
-                    btn_0_0.ImageIndex = 2;
-                    btn_0_0.Enabled = false;
-                    label1.Text = "Joueur 1, cliquez sur une case";
-                    player1 = true;
-                }
-            }
+
+            UpdateGameGrid(GetCurrentPlayerNumber(), cell);
+
+            UpdateUI(GetCurrentPlayerNumber(), clickedButton);
 
             CheckWin();
+
+            SwitchPlayerTurn();
         }
 
-        private void btn_0_1_Click(object sender, EventArgs e)
+        private void UpdateUI(int playerNumber, Button clickedButton)
         {
-
-            if (grid[0, 1] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[0, 1] = 1;
-                    btn_0_1.ImageIndex = 1;
-                    btn_0_1.Enabled = false;
-                    label1.Text = "Joueur 2, cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[0, 1] = 1;
-                    btn_0_1.ImageIndex = 2;
-                    btn_0_1.Enabled = false;
-                    label1.Text = "Joueur 1, cliquez sur une case";
-                    player1 = true;
-                }
-            }
-
-            CheckWin();
+            clickedButton.ImageIndex = playerNumber;
+            clickedButton.Enabled = false;
+            lblStatusText.Text = $"Joueur {playerNumber}, cliquez sur une case";
         }
 
-        private void btn_0_2_Click(object sender, EventArgs e)
+        private static void DisplayErrorCellTaken()
         {
-
-            if (grid[0, 2] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[0, 2] = 1;
-                    btn_0_2.ImageIndex = 1;
-                    btn_0_2.Enabled = false;
-                    label1.Text = "Joueur 2, cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[0, 2] = 2;
-                    btn_0_2.ImageIndex = 2;
-                    btn_0_2.Enabled = false;
-                    label1.Text = "Joueur 1, cliquez sur une case";
-                    player1 = true;
-                }
-            }
-
-            CheckWin();
+            MessageBox.Show(TEXT_ERROR_CELL_TAKEN);
+            Debug.Write(TEXT_ERROR_CELL_TAKEN);
         }
 
-        private void btn_1_0_Click(object sender, EventArgs e)
+        private int GetCurrentPlayerNumber()
         {
-
-            if (grid[1, 0] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[1, 0] = 1;
-                    btn_1_0.ImageIndex = 1;
-
-                    label1.Text = "Joueur 2, cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[1, 0] = 2;
-                    btn_1_0.ImageIndex = 2;
-                    label1.Text = "Joueur 1, cliquez sur une case";
-                    player1 = true;
-                }
-                btn_1_0.Enabled = false;
-            }
-
-            CheckWin();
+            return player1Turn ? 1 : 2;
         }
 
-        private void DeclarerVainqueur()
+        private void SwitchPlayerTurn()
         {
-            if (player1)
-            {
-                MessageBox.Show("Joueur 1 a gagné !");
-
-            }
-            else
-            {
-                MessageBox.Show("Joueur 2 a gagné !");
-            }
-            label1.Text = "Appuyez sur New Game";
+            player1Turn = !player1Turn;
         }
 
-        private void btn_1_1_Click(object sender, EventArgs e)
+        private void UpdateGameGrid(int playerNumber, Point cell)
         {
-
-            if (grid[1, 1] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[1, 1] = 1;
-                    btn_1_1.ImageIndex = 1;
-
-                    label1.Text = "Joueur 2, cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[1, 1] = 2;
-                    btn_1_1.ImageIndex = 2;
-                    label1.Text = "Joueur 1, cliquez sur une case";
-                    player1 = true;
-                }
-            }
-            btn_1_1.Enabled = false;
-            CheckWin();
+            gameGrid[cell.X, cell.Y] = playerNumber;
         }
 
-        private void btn_1_2_Click(object sender, EventArgs e)
+        private bool CellIsFree(Point cell)
         {
-            if (grid[1, 2] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[1, 2] = 1;
-                    btn_1_2.ImageIndex = 1;
-
-                    label1.Text = "Joueur 2, cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[1, 2] = 2;
-                    btn_1_2.ImageIndex = 2;
-                    label1.Text = "Joueur 1, cliquez sur une case";
-                    player1 = true;
-                }
-            }
-            btn_1_2.Enabled = false;
-            CheckWin();
-        }
-
-        private void btn2_0_Click(object sender, EventArgs e)
-        {
-            int player = 1;
-            if (!player1)
-            {
-                player = 2;
-            }
-            if (grid[2, 0] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[2, 0] = player;
-                    btn2_0.ImageIndex = player;
-
-                    label1.Text = "Joueur " + player + ", cliquez sur une case";
-                    player1 = false;
-                }
-                else
-                {
-                    grid[2, 0] = player;
-                    btn2_0.ImageIndex = player;
-                    label1.Text = $"Joueur {player}, cliquez sur une case";
-                    player1 = true;
-                }
-            }
-            btn2_0.Enabled = false;
-            CheckWin();
+            return gameGrid[cell.X, cell.Y] == 0;
         }
 
         private void CheckWin()
         {
-            //on vérifie si un des deux joueurs à gagné
-            if ((grid[0, 0] == 1 && grid[0, 1] == 1 && grid[0, 2] == 1) || //Horizontales
-                (grid[1, 0] == 1 && grid[1, 1] == 1 && grid[1, 2] == 1) ||
-                (grid[2, 0] == 1 && grid[2, 1] == 1 && grid[2, 2] == 1) ||
-                (grid[0, 0] == 1 && grid[1, 0] == 1 && grid[2, 0] == 1) ||
-                (grid[0, 1] == 1 && grid[1, 1] == 1 && grid[2, 1] == 1) ||//Verticales
-                (grid[0, 2] == 1 && grid[1, 2] == 1 && grid[2, 2] == 1) ||
-                (grid[0, 0] == 1 && grid[1, 1] == 1 && grid[2, 2] == 1) ||//Diagonales
-                (grid[0, 2] == 1 && grid[1, 1] == 1 && grid[2, 0] == 1))
+            btnNewGame.Focus();
+            if ((gameGrid[0, 0] == 1 && gameGrid[0, 1] == 1 && gameGrid[0, 2] == 1) || //Horizontales
+                (gameGrid[1, 0] == 1 && gameGrid[1, 1] == 1 && gameGrid[1, 2] == 1) ||
+                (gameGrid[2, 0] == 1 && gameGrid[2, 1] == 1 && gameGrid[2, 2] == 1) ||
+                (gameGrid[0, 0] == 1 && gameGrid[1, 0] == 1 && gameGrid[2, 0] == 1) ||
+                (gameGrid[0, 1] == 1 && gameGrid[1, 1] == 1 && gameGrid[2, 1] == 1) ||//Verticales
+                (gameGrid[0, 2] == 1 && gameGrid[1, 2] == 1 && gameGrid[2, 2] == 1) ||
+                (gameGrid[0, 0] == 1 && gameGrid[1, 1] == 1 && gameGrid[2, 2] == 1) ||//Diagonales
+                (gameGrid[0, 2] == 1 && gameGrid[1, 1] == 1 && gameGrid[2, 0] == 1))
             {
-                DeclarerVainqueur();
+                DeclarerVainqueur(1);
             }
-            if ((grid[0, 0] == 2 && grid[0, 1] == 2 && grid[0, 2] == 2) ||
-                (grid[1, 0] == 2 && grid[1, 1] == 2 && grid[1, 2] == 2) ||
-                (grid[2, 0] == 2 && grid[2, 1] == 2 && grid[2, 2] == 2) ||
-                (grid[0, 0] == 2 && grid[1, 0] == 2 && grid[2, 0] == 2) ||
-                (grid[0, 1] == 2 && grid[1, 1] == 2 && grid[2, 1] == 2) ||
-                (grid[0, 2] == 2 && grid[1, 2] == 2 && grid[2, 2] == 2) ||
-                (grid[0, 0] == 2 && grid[1, 1] == 2 && grid[2, 2] == 2) ||
-                (grid[0, 2] == 2 && grid[1, 1] == 2 && grid[2, 0] == 2))
+            if ((gameGrid[0, 0] == 2 && gameGrid[0, 1] == 2 && gameGrid[0, 2] == 2) ||
+                (gameGrid[1, 0] == 2 && gameGrid[1, 1] == 2 && gameGrid[1, 2] == 2) ||
+                (gameGrid[2, 0] == 2 && gameGrid[2, 1] == 2 && gameGrid[2, 2] == 2) ||
+                (gameGrid[0, 0] == 2 && gameGrid[1, 0] == 2 && gameGrid[2, 0] == 2) ||
+                (gameGrid[0, 1] == 2 && gameGrid[1, 1] == 2 && gameGrid[2, 1] == 2) ||
+                (gameGrid[0, 2] == 2 && gameGrid[1, 2] == 2 && gameGrid[2, 2] == 2) ||
+                (gameGrid[0, 0] == 2 && gameGrid[1, 1] == 2 && gameGrid[2, 2] == 2) ||
+                (gameGrid[0, 2] == 2 && gameGrid[1, 1] == 2 && gameGrid[2, 0] == 2))
             {
-                DeclarerVainqueur();
+                DeclarerVainqueur(2);
             }
         }
 
-        private void btn2_1_Click(object sender, EventArgs e)
+        private void DeclarerVainqueur(int player)
         {
-            int player = 1;
-            if (!player1)
-            {
-                player = 2;
-            }
-            if (grid[2, 1] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[2, 1] = player;
-                    btn2_1.ImageIndex = player;
+            MessageBox.Show($"Joueur {player} a gagné !");
 
-
-                    player1 = false;
-                }
-                else
-                {
-                    grid[2, 1] = player;
-                    btn2_1.ImageIndex = player;
-
-                    player1 = true;
-                }
-            }
-            btn2_1.Enabled = false;
-            label1.Text = "Joueur " + player + ", cliquez sur une case";
-            CheckWin();
-        }
-
-        private void btn2_2_Click(object sender, EventArgs e)
-        {
-            int player = 1;
-            if (!player1)
-            {
-                player = 2;
-            }
-            if (grid[2, 2] != 0)
-            {
-                MessageBox.Show("Vous ne pouvez pas cliquer ici, la case a déja été prise");
-            }
-            else
-            {
-                if (player1)
-                {
-                    grid[2, 2] = player;
-                    btn2_2.ImageIndex = player;
-
-
-                    player1 = false;
-                }
-                else
-                {
-                    grid[2, 2] = player;
-                    btn2_2.ImageIndex = player;
-
-                    player1 = true;
-                }
-            }
-            btn2_2.Enabled = false;
-            label1.Text = "Joueur " + player + ", cliquez sur une case";
-            CheckWin();
+            lblStatusText.Text = "Appuyez sur New Game";
         }
     }
 }
