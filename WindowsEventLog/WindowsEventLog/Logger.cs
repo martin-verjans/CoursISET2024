@@ -6,7 +6,7 @@ namespace WindowsEventLog
 {
     internal class Logger : IDisposable
     {
-        private const string EVENTSOURCE = "ISET2023";
+        private const string EVENTSOURCE = "ISET2024";
         private const string LOGNAME = "MyCustomLogForISET";
         private readonly EventLog log;
 
